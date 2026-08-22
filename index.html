@@ -443,13 +443,32 @@
         fetch('https://wttr.in/?format=%c%t+%C&lang=' + (lang === 'zh' ? 'zh' : 'en'))
             .then(r => r.text())
             .then(d => {
-                const parts = d.trim().split(' ');
+                // 防御 wttr.in 返回 HTML 错误页（限流/5xx 时）
+                const raw = (d || '').trim();
+                if (!raw || /<[^>]+>/.test(raw)) throw new Error('bad weather payload');
+                const parts = raw.split(/\s+/);
                 if (parts.length >= 2) {
                     const temp = parts[0], cond = parts.slice(1).join(' ');
-                    $('weather-info').innerHTML = `<i class="fas fa-cloud text-xs"></i> <span>${cond} ${temp}</span>`;
+                    const wi = $('weather-info');
+                    wi.textContent = '';
+                    const i = document.createElement('i');
+                    i.className = 'fas fa-cloud text-xs';
+                    const s = document.createElement('span');
+                    s.textContent = ' ' + cond + ' ' + temp;
+                    wi.appendChild(i);
+                    wi.appendChild(s);
                 }
             })
-            .catch(() => { $('weather-info').innerHTML = `<i class="fas fa-globe text-xs"></i> <span>${lang === 'zh' ? '天气服务不可用' : 'Weather unavailable'}</span>`; });
+            .catch(() => {
+                const wi = $('weather-info');
+                wi.textContent = '';
+                const i = document.createElement('i');
+                i.className = 'fas fa-globe text-xs';
+                const s = document.createElement('span');
+                s.textContent = ' ' + (lang === 'zh' ? '天气服务不可用' : 'Weather unavailable');
+                wi.appendChild(i);
+                wi.appendChild(s);
+            });
     }
 
     // ============================================================

@@ -62,9 +62,9 @@
 
         body.theme-dark {
             background:
-                radial-gradient(ellipse 90% 55% at 50% 0%, rgba(140, 30, 50, 0.55) 0%, rgba(140, 30, 50, 0.15) 30%, rgba(0, 0, 0, 0) 70%),
-                radial-gradient(ellipse 60% 40% at 20% 0%, rgba(180, 40, 80, 0.18) 0%, rgba(0, 0, 0, 0) 60%),
-                linear-gradient(180deg, #1a0712 0%, #0a0408 100%);
+                radial-gradient(ellipse 95% 60% at 50% 0%, rgba(70, 80, 95, 0.45) 0%, rgba(40, 50, 60, 0.18) 30%, rgba(0, 0, 0, 0) 70%),
+                radial-gradient(ellipse 65% 45% at 18% 0%, rgba(55, 65, 80, 0.22) 0%, rgba(0, 0, 0, 0) 60%),
+                linear-gradient(180deg, #1f242c 0%, #14181d 50%, #0a0c10 100%);
             color: #f8fafc;
             background-attachment: fixed;
         }
@@ -91,7 +91,7 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: linear-gradient(180deg, rgba(58, 10, 26, 0.45) 0%, rgba(10, 4, 8, 0.55) 100%);
+            background: linear-gradient(180deg, rgba(31, 36, 44, 0.45) 0%, rgba(10, 12, 16, 0.55) 100%);
             backdrop-filter: blur(2px);
             z-index: -1;
         }
@@ -109,6 +109,10 @@
         }
 
         body:not(.is-admin) .admin-only {
+            display: none !important;
+        }
+        /* 任何已登录用户都能看到 + 写文章按钮；未登录隐藏 */
+        body:not(.is-admin) .can-write {
             display: none !important;
         }
 
@@ -297,7 +301,7 @@
 
         <!-- 时间 + 天气 横条（保留） -->
         <div class="text-center mb-8 animate-fade-in">
-            <h1 id="clock" class="text-5xl lg:text-7xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 mb-2">00:00:00</h1>
+            <h1 id="clock" class="text-5xl lg:text-7xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-300 via-blue-300 to-slate-400 mb-2">00:00:00</h1>
             <div class="flex items-center justify-center space-x-3 text-sm md:text-base font-medium tracking-wide opacity-90">
                 <span id="greeting" class="text-indigo-400">正在筹备问候语...</span>
                 <span class="opacity-30">|</span>
@@ -701,8 +705,8 @@
         applyTheme();
     }
     function applyTheme() {
-        // 同步真实管理员状态（管理员后台密码 || user.isAdmin）
-        const effectiveAdmin = isAdmin || isUserAdmin();
+        // 任何已登录用户（admin 密码 OR 多用户）都视为可发布者，看到 + 按钮
+        const effectiveAdmin = isAdmin || !!currentUser || isUserAdmin();
         document.body.className = baseTheme + ' font-sans antialiased selection:bg-indigo-500 selection:text-white';
         document.body.classList.toggle('is-admin', effectiveAdmin);
         if (customBgApplied) document.body.classList.add('has-custom-bg');
@@ -888,7 +892,7 @@
             ${tags.map(tag => `
                 <button onclick="filterByTag('${tag}')" class="tag-pill px-4 py-1.5 rounded-full text-xs font-medium glass-card ${currentTag === tag ? 'border-indigo-500/50 text-indigo-400' : 'border-slate-600 text-slate-400'}">${tag}</button>
             `).join('')}
-            <button onclick="openArticleModal()" class="admin-only tag-pill px-3 py-1.5 rounded-full text-xs font-medium glass-card border border-dashed border-indigo-500/40 text-indigo-400 hover:border-indigo-500/70 hover:text-indigo-300 transition-colors cursor-pointer">
+            <button onclick="openArticleModal()" title="写一篇新文章" class="can-write tag-pill px-3 py-1.5 rounded-full text-xs font-medium glass-card border border-dashed border-indigo-500/40 text-indigo-400 hover:border-indigo-500/70 hover:text-indigo-300 transition-colors cursor-pointer">
                 <i class="fas fa-plus"></i>
             </button>
         `;

@@ -42,8 +42,12 @@
         body.theme-light .prose-content blockquote { border-color: #c7d2fe; color: #475569; }
 
         body.theme-dark {
-            background: linear-gradient(180deg, #3a0a1a 0%, #1a0610 35%, #050307 100%);
+            background:
+                radial-gradient(ellipse 90% 55% at 50% 0%, rgba(140, 30, 50, 0.55) 0%, rgba(140, 30, 50, 0.15) 30%, rgba(0, 0, 0, 0) 70%),
+                radial-gradient(ellipse 60% 40% at 20% 0%, rgba(180, 40, 80, 0.18) 0%, rgba(0, 0, 0, 0) 60%),
+                linear-gradient(180deg, #1a0712 0%, #0a0408 100%);
             color: #f8fafc;
+            background-attachment: fixed;
         }
         body.theme-dark .glass-card {
             background: rgba(30, 41, 59, 0.45);
@@ -64,11 +68,19 @@
         body.theme-dark .prose-content pre { background: #0f172a; }
         body.theme-dark .prose-content blockquote { border-color: #4f46e5; color: #94a3b8; }
 
-        body.has-custom-bg::before {
+        body.theme-dark.has-custom-bg::before {
             content: '';
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.55);
+            background: linear-gradient(180deg, rgba(58, 10, 26, 0.45) 0%, rgba(10, 4, 8, 0.55) 100%);
+            backdrop-filter: blur(2px);
+            z-index: -1;
+        }
+        body.theme-light.has-custom-bg::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(248, 250, 252, 0.4);
             backdrop-filter: blur(2px);
             z-index: -1;
         }
@@ -213,9 +225,25 @@
                     <button id="search-toggle" onclick="toggleSearchBar()" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors" title="搜索">
                         <i class="fas fa-search text-sm"></i>
                     </button>
-                    <button onclick="triggerAdminLogin()" id="login-btn" class="px-4 py-1.5 rounded-full text-sm font-semibold bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 transition-colors shadow-md text-white">
-                        <i class="fas fa-user-circle mr-1"></i><span id="login-label">登录</span>
-                    </button>
+                    <div class="relative">
+                        <button onclick="openUserAuth()" id="login-btn" class="px-3 py-1.5 rounded-full text-sm font-semibold bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 transition-colors shadow-md text-white flex items-center gap-1.5 cursor-pointer">
+                            <span id="login-avatar-wrap"><i class="fas fa-user-circle"></i></span><span id="login-label">登录</span>
+                        </button>
+                        <!-- 已登入下拉 -->
+                        <div id="user-menu" class="hidden absolute right-0 top-full mt-2 w-56 glass-card rounded-xl p-2 z-[120] shadow-2xl">
+                            <div class="px-3 py-2 border-b border-white/10 mb-1">
+                                <div class="flex items-center gap-2">
+                                    <div id="user-menu-avatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden"></div>
+                                    <div class="min-w-0">
+                                        <div id="user-menu-name" class="text-sm font-semibold text-white truncate"></div>
+                                        <div id="user-menu-handle" class="text-xs text-slate-400 truncate"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="openProfileModal(); closeUserMenu()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-sm text-slate-200 transition-colors cursor-pointer"><i class="fas fa-id-card mr-2 text-indigo-400"></i>个人资料</button>
+                            <button onclick="logoutUser()" class="w-full text-left px-3 py-2 rounded-lg hover:bg-white/10 text-sm text-slate-200 transition-colors cursor-pointer"><i class="fas fa-sign-out-alt mr-2 text-rose-400"></i>退出登录</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -357,6 +385,75 @@
             <span id="admin-badge" class="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 font-bold hidden">已登入</span>
         </footer>
     </main>
+
+    <!-- 用户登录/注册弹窗 -->
+    <div id="user-auth-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center z-[200] px-4">
+        <div class="glass-card rounded-2xl p-8 w-full max-w-sm relative animate-fade-in">
+            <button onclick="closeUserAuth()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold text-indigo-400 mb-6 text-center"><i class="fas fa-user mr-2"></i><span id="user-auth-title">登录</span></h3>
+            <!-- Tab -->
+            <div class="flex mb-5 bg-slate-800/60 rounded-lg p-1 text-sm">
+                <button onclick="switchAuthTab('login')" id="auth-tab-login" class="flex-1 py-1.5 rounded-md bg-indigo-600 text-white font-semibold transition-colors cursor-pointer">登录</button>
+                <button onclick="switchAuthTab('register')" id="auth-tab-register" class="flex-1 py-1.5 rounded-md text-slate-400 hover:text-white transition-colors cursor-pointer">注册</button>
+            </div>
+            <div class="space-y-3">
+                <!-- 登录字段 -->
+                <div id="login-fields">
+                    <label class="text-xs text-slate-400 mb-1 block">用户名</label>
+                    <input type="text" id="login-username" placeholder="3-20 位字母/数字/下划线" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors mb-2">
+                    <label class="text-xs text-slate-400 mb-1 block">密码</label>
+                    <input type="password" id="login-password" placeholder="6-64 位" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" onkeydown="if(event.key==='Enter')submitLogin()">
+                </div>
+                <!-- 注册字段 -->
+                <div id="register-fields" class="hidden">
+                    <label class="text-xs text-slate-400 mb-1 block">用户名（不可改）</label>
+                    <input type="text" id="reg-username" placeholder="3-20 位字母/数字/下划线/连字符" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors mb-2">
+                    <label class="text-xs text-slate-400 mb-1 block">昵称</label>
+                    <input type="text" id="reg-displayname" placeholder="显示给别人看的名字" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors mb-2">
+                    <label class="text-xs text-slate-400 mb-1 block">头像（可选）</label>
+                    <div class="flex items-center gap-3">
+                        <input type="text" id="reg-avatar" placeholder="Emoji（如 🥓 ）或图片 URL" class="flex-1 bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                        <div id="reg-avatar-preview" class="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-lg font-bold shrink-0">?</div>
+                    </div>
+                    <label class="text-xs text-slate-400 mb-1 block mt-2">密码</label>
+                    <input type="password" id="reg-password" placeholder="6-64 位" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" onkeydown="if(event.key==='Enter')submitRegister()">
+                </div>
+                <button id="user-auth-submit" onclick="submitUserAuth()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-3 text-sm font-semibold transition-colors cursor-pointer mt-2">登入</button>
+                <p id="user-auth-error" class="text-red-400 text-xs text-center hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 个人资料弹窗（已登入用户） -->
+    <div id="profile-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center z-[200] px-4">
+        <div class="glass-card rounded-2xl p-8 w-full max-w-md relative animate-fade-in">
+            <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold text-indigo-400 mb-6"><i class="fas fa-id-card mr-2"></i>个人资料</h3>
+            <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                    <div id="profile-avatar-preview" class="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden shrink-0">?</div>
+                    <div class="flex-1">
+                        <label class="text-xs text-slate-400 mb-1 block">头像（Emoji 或图片 URL）</label>
+                        <input type="text" id="profile-avatar" placeholder="Emoji 或 https://..." class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">用户名（不可改）</label>
+                    <input type="text" id="profile-username" disabled class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">昵称</label>
+                    <input type="text" id="profile-displayname" maxlength="30" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+                <details class="text-xs">
+                    <summary class="text-slate-400 cursor-pointer hover:text-slate-200 py-1">修改密码（可选）</summary>
+                    <input type="password" id="profile-newpwd" placeholder="留空则不修改，6-64 位" class="mt-2 w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                </details>
+                <button onclick="submitProfile()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-3 text-sm font-semibold transition-colors cursor-pointer mt-2">保存</button>
+                <p id="profile-error" class="text-red-400 text-xs text-center hidden"></p>
+            </div>
+        </div>
+    </div>
 
     <!-- 管理员登录弹窗 -->
     <div id="modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center z-[200] px-4">
@@ -585,8 +682,10 @@
         applyTheme();
     }
     function applyTheme() {
+        // 同步真实管理员状态（管理员后台密码 || user.isAdmin）
+        const effectiveAdmin = isAdmin || isUserAdmin();
         document.body.className = baseTheme + ' font-sans antialiased selection:bg-indigo-500 selection:text-white';
-        document.body.classList.toggle('is-admin', isAdmin);
+        document.body.classList.toggle('is-admin', effectiveAdmin);
         if (customBgApplied) document.body.classList.add('has-custom-bg');
         else document.body.classList.remove('has-custom-bg');
     }
@@ -629,13 +728,13 @@
         $('greeting').textContent = t;
     }
     function fetchWeather() {
-        const t = i18n[lang].weatherLoading;
-        fetch('https://wttr.in/?format=%c%t+%C&lang=' + (lang === 'zh' ? 'zh' : 'en'))
+        // 走自己 Pages 域的代理，绕过 CORS / 限流
+        const url = '/api/weather?lang=' + (lang === 'zh' ? 'zh' : 'en');
+        fetch(url)
             .then(r => r.text())
             .then(d => {
-                // 防御 wttr.in 返回 HTML 错误页（限流/5xx 时）
                 const raw = (d || '').trim();
-                if (!raw || /<[^>]+>/.test(raw)) throw new Error('bad weather payload');
+                if (!raw || /<[^>]+>/.test(raw) || /^ERR:/.test(raw)) throw new Error('bad weather payload');
                 const parts = raw.split(/\s+/);
                 if (parts.length >= 2) {
                     const temp = parts[0], cond = parts.slice(1).join(' ');
@@ -832,6 +931,211 @@
     // ============================================================
     // 管理员弹窗
     // ============================================================
+    // ============================================================
+    // 多用户系统（注册 / 登录 / 顶栏 / 资料 / 退出）
+    // ============================================================
+    let currentUser = null; // { username, displayName, avatar, isAdmin? }
+    let authToken = localStorage.getItem('authToken') || null;
+    function isAuthenticated() { return !!currentUser; }
+    function isUserAdmin() { return !!(currentUser && currentUser.isAdmin); }
+
+    // 打开顶栏未登录态弹窗
+    function openUserAuth() {
+        if (isAuthenticated()) { toggleUserMenu(); return; }
+        switchAuthTab('login');
+        $('user-auth-error').classList.add('hidden');
+        $('user-auth-modal').classList.remove('hidden');
+        setTimeout(() => $('login-username').focus(), 50);
+    }
+    function closeUserAuth() { $('user-auth-modal').classList.add('hidden'); }
+    function switchAuthTab(tab) {
+        const isLogin = tab === 'login';
+        $('auth-tab-login').classList.toggle('bg-indigo-600', isLogin);
+        $('auth-tab-login').classList.toggle('text-white', isLogin);
+        $('auth-tab-login').classList.toggle('text-slate-400', !isLogin);
+        $('auth-tab-register').classList.toggle('bg-indigo-600', !isLogin);
+        $('auth-tab-register').classList.toggle('text-white', !isLogin);
+        $('auth-tab-register').classList.toggle('text-slate-400', isLogin);
+        $('user-auth-title').textContent = isLogin ? '登录' : '注册';
+        $('user-auth-submit').textContent = isLogin ? '登入' : '注册';
+        $('login-fields').classList.toggle('hidden', !isLogin);
+        $('register-fields').classList.toggle('hidden', isLogin);
+        $('user-auth-error').classList.add('hidden');
+    }
+    function showUserAuthError(msg) {
+        const e = $('user-auth-error');
+        e.textContent = msg; e.classList.remove('hidden');
+    }
+    function setSubmitting(on) {
+        const b = $('user-auth-submit');
+        if (on) { b.disabled = true; b.textContent = '处理中…'; b.classList.add('opacity-50'); }
+        else { b.disabled = false; b.textContent = $('login-fields').classList.contains('hidden') ? '注册' : '登入'; b.classList.remove('opacity-50'); }
+    }
+    function submitUserAuth() {
+        if ($('login-fields').classList.contains('hidden')) submitRegister();
+        else submitLogin();
+    }
+    async function submitLogin() {
+        const u = $('login-username').value.trim();
+        const p = $('login-password').value;
+        if (!u || !p) return showUserAuthError('请输入用户名和密码');
+        setSubmitting(true);
+        try {
+            const r = await fetch('/api/users', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'login', username: u, password: p })
+            });
+            const d = await r.json();
+            if (!r.ok || !d.ok) { showUserAuthError(d.error || '登录失败'); return; }
+            authToken = d.token; localStorage.setItem('authToken', authToken);
+            currentUser = d.user;
+            applyUserUI();
+            closeUserAuth();
+        } catch (e) { showUserAuthError('网络错误：' + e.message); }
+        finally { setSubmitting(false); }
+    }
+    async function submitRegister() {
+        const u = $('reg-username').value.trim();
+        const p = $('reg-password').value;
+        const dn = $('reg-displayname').value.trim();
+        const av = $('reg-avatar').value.trim();
+        if (!u || !p) return showUserAuthError('请输入用户名和密码');
+        setSubmitting(true);
+        try {
+            const r = await fetch('/api/users', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'register', username: u, password: p, displayName: dn, avatar: av })
+            });
+            const d = await r.json();
+            if (!r.ok || !d.ok) { showUserAuthError(d.error || '注册失败'); return; }
+            authToken = d.token; localStorage.setItem('authToken', authToken);
+            currentUser = d.user;
+            applyUserUI();
+            closeUserAuth();
+        } catch (e) { showUserAuthError('网络错误：' + e.message); }
+        finally { setSubmitting(false); }
+    }
+    async function logoutUser() {
+        try { await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'logout', token: authToken }) }); } catch {}
+        authToken = null; localStorage.removeItem('authToken'); currentUser = null;
+        closeUserMenu();
+        applyUserUI();
+    }
+    function toggleUserMenu() {
+        const m = $('user-menu'); if (!m) return;
+        m.classList.toggle('hidden');
+    }
+    function closeUserMenu() { const m = $('user-menu'); if (m) m.classList.add('hidden'); }
+    document.addEventListener('click', (e) => {
+        const btn = $('login-btn'); const menu = $('user-menu');
+        if (!btn || !menu || menu.classList.contains('hidden')) return;
+        if (!btn.contains(e.target) && !menu.contains(e.target)) menu.classList.add('hidden');
+    });
+    function renderAvatarInto(el, user, fallbackLetter) {
+        if (!el) return;
+        el.innerHTML = '';
+        if (user && user.avatar) {
+            const v = String(user.avatar);
+            if (/^https?:\/\//.test(v) || v.startsWith('data:')) {
+                const img = document.createElement('img');
+                img.src = v; img.className = 'w-full h-full object-cover';
+                el.appendChild(img);
+                return;
+            }
+            // 表情 / 文本
+            el.textContent = v;
+        } else {
+            el.textContent = (user && (user.displayName || user.username) || fallbackLetter || '?').charAt(0).toUpperCase();
+        }
+    }
+    function applyUserUI() {
+        const wrap = $('login-avatar-wrap');
+        const lbl = $('login-label');
+        if (isAuthenticated()) {
+            const u = currentUser;
+            renderAvatarInto(wrap, u);
+            wrap.classList.add('w-6','h-6','rounded-full','bg-gradient-to-br','from-indigo-500','to-purple-600','flex','items-center','justify-center','overflow-hidden','text-sm','font-bold');
+            if (lbl) lbl.textContent = u.displayName || u.username;
+            $('user-menu-name').textContent = u.displayName || u.username;
+            $('user-menu-handle').textContent = '@' + u.username;
+            renderAvatarInto($('user-menu-avatar'), u);
+        } else {
+            wrap.className = '';
+            wrap.innerHTML = '<i class="fas fa-user-circle"></i>';
+            if (lbl) lbl.textContent = lang === 'zh' ? '登录' : 'Login';
+        }
+    }
+    // 顶栏按钮点击走 user 流程（不再走管理员）
+    function openUserAuthOrMenu() { openUserAuth(); }
+    // 登入页头注册
+    function regAvatarPreview() {
+        const v = $('reg-avatar').value.trim();
+        const pv = $('reg-avatar-preview');
+        pv.innerHTML = '';
+        if (v) {
+            if (/^https?:\/\//.test(v) || v.startsWith('data:')) {
+                const img = document.createElement('img'); img.src = v; img.className = 'w-full h-full object-cover rounded-full';
+                pv.appendChild(img);
+            } else {
+                pv.textContent = v;
+            }
+        } else {
+            const dn = $('reg-displayname').value.trim();
+            pv.textContent = (dn || $('reg-username').value.trim() || '?').charAt(0).toUpperCase();
+        }
+    }
+    document.addEventListener('input', (e) => {
+        if (e.target && e.target.id === 'reg-avatar') regAvatarPreview();
+        if (e.target && e.target.id === 'reg-displayname') regAvatarPreview();
+        if (e.target && e.target.id === 'reg-username') regAvatarPreview();
+        if (e.target && e.target.id === 'profile-avatar') profileAvatarPreview();
+    });
+    function profileAvatarPreview() {
+        const v = $('profile-avatar').value.trim();
+        renderAvatarInto($('profile-avatar-preview'), { avatar: v });
+    }
+    // 个人资料
+    function openProfileModal() {
+        if (!isAuthenticated()) return;
+        $('profile-username').value = currentUser.username;
+        $('profile-displayname').value = currentUser.displayName || currentUser.username;
+        $('profile-avatar').value = currentUser.avatar || '';
+        $('profile-newpwd').value = '';
+        profileAvatarPreview();
+        $('profile-error').classList.add('hidden');
+        $('profile-modal').classList.remove('hidden');
+    }
+    function closeProfileModal() { $('profile-modal').classList.add('hidden'); }
+    async function submitProfile() {
+        const displayName = $('profile-displayname').value.trim();
+        const avatar = $('profile-avatar').value.trim();
+        const newPwd = $('profile-newpwd').value;
+        if (!displayName) { $('profile-error').textContent = '昵称不能为空'; $('profile-error').classList.remove('hidden'); return; }
+        try {
+            const r = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken || '' },
+                body: JSON.stringify({ action: 'update', displayName, avatar, newPassword: newPwd || undefined })
+            });
+            const d = await r.json();
+            if (!r.ok || !d.ok) { $('profile-error').textContent = d.error || '保存失败'; $('profile-error').classList.remove('hidden'); return; }
+            currentUser = d.user;
+            applyUserUI();
+            closeProfileModal();
+        } catch (e) { $('profile-error').textContent = '网络错误：' + e.message; $('profile-error').classList.remove('hidden'); }
+    }
+    // 启动时拉取当前用户
+    async function loadCurrentUser() {
+        if (!authToken) { applyUserUI(); return; }
+        try {
+            const r = await fetch('/api/users', { headers: { 'X-Auth-Token': authToken } });
+            const d = await r.json();
+            if (d && d.user) { currentUser = d.user; }
+            else { authToken = null; localStorage.removeItem('authToken'); }
+        } catch {}
+        applyUserUI();
+    }
+
     function triggerAdminLogin() {
         $('modal').classList.remove('hidden');
         $('admin-pwd-input').focus();
@@ -840,9 +1144,14 @@
     function loginAdmin() {
         if ($('admin-pwd-input').value === adminPwd) {
             isAdmin = true;
+            // 顺带同步为多用户体系中的 admin 身份
+            if (!currentUser) {
+                currentUser = { username: 'admin', displayName: 'Admin', avatar: '', isAdmin: true };
+            } else {
+                currentUser.isAdmin = true;
+            }
             applyTheme();
             if ($('admin-badge')) $('admin-badge').classList.remove('hidden');
-            const ll = $('login-label'); if (ll) ll.textContent = lang === 'zh' ? '管理' : 'Admin';
             closeModal();
             renderArticles();
         } else {
@@ -916,6 +1225,7 @@
         selectEngine(searchEngine);
         await loadSiteConfig();
         await loadArticles();
+        await loadCurrentUser();
         applyTheme();
         renderUpdates();
         // 根据 URL hash 初始化 view

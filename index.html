@@ -18,7 +18,7 @@
             <input id="music-vol" type="range" min="0" max="100" value="60" oninput="setMusicVol(this.value)" class="w-20 accent-pink-400 cursor-pointer">
         </div>
     </div>
-    <audio id="bg-audio" loop preload="none" crossorigin="anonymous"></audio>
+    <audio id="bg-audio" loop preload="none"></audio>
 
     <!-- 雪花动画画布（固定背景层） -->
     <canvas id="snow-canvas" class="fixed inset-0 pointer-events-none z-[60]"></canvas>
@@ -1273,7 +1273,12 @@
         a.src = MUSIC_LIST[musicIdx].src;
         a.volume = (parseInt(document.getElementById('music-vol').value, 10) || 60) / 100;
         setMusicTitle(MUSIC_LIST[musicIdx].title);
-        a.play().then(() => { musicPlaying = true; setMusicIcon(true); }).catch(() => { musicPlaying = false; setMusicIcon(false); });
+        a.play().then(() => { musicPlaying = true; setMusicIcon(true); }).catch((e) => {
+            musicPlaying = false; setMusicIcon(false);
+            console.error('[music] play() rejected:', e, 'src=', a.src);
+            const t = $('music-title');
+            if (t) t.textContent = '♪ 加载失败 (点这里换一首)';
+        });
     }
     function pauseMusic() {
         const a = getAudio();

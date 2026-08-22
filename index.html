@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CheeseRoll 的个人博客，分享技术与生活。">
+    <meta name="keywords" content="个人博客, 技术分享, 程序员">
+    <title id="page-title">CheeseRoll's Blog</title>
+
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body.theme-light {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #0f172a;
+        }
+        body.theme-light .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+        body.theme-light .glass-input {
+            background: rgba(0, 0, 0, 0.04);
+            color: #000;
+        }
+        body.theme-light input::placeholder { color: #94a3b8; }
+        body.theme-light #engine-menu { background: #ffffff; border-color: #e2e8f0; }
+        body.theme-light #engine-menu button { color: #334155; }
+        body.theme-light #engine-menu button:hover { background: rgba(79, 70, 229, 0.08); }
+        body.theme-light .prose-content h1,
+        body.theme-light .prose-content h2,
+        body.theme-light .prose-content h3 { color: #1e293b; }
+        body.theme-light .prose-content p,
+        body.theme-light .prose-content li { color: #334155; }
+        body.theme-light .prose-content code { background: #f1f5f9; color: #7c3aed; }
+        body.theme-light .prose-content pre { background: #1e293b; }
+        body.theme-light .prose-content blockquote { border-color: #c7d2fe; color: #475569; }
+
+        body.theme-dark {
+            background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+            color: #f8fafc;
+        }
+        body.theme-dark .glass-card {
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        body.theme-dark .glass-input {
+            background: rgba(255, 255, 255, 0.07);
+        }
+        body.theme-dark .prose-content h1,
+        body.theme-dark .prose-content h2,
+        body.theme-dark .prose-content h3 { color: #e2e8f0; }
+        body.theme-dark .prose-content p,
+        body.theme-dark .prose-content li { color: #cbd5e1; }
+        body.theme-dark .prose-content code { background: #1e293b; color: #a78bfa; }
+        body.theme-dark .prose-content pre { background: #0f172a; }
+        body.theme-dark .prose-content blockquote { border-color: #4f46e5; color: #94a3b8; }
+
+        body.has-custom-bg::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(2px);
+            z-index: -1;
+        }
+
+        body, .glass-card, .glass-input {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body:not(.is-admin) .admin-only {
+            display: none !important;
+        }
+
+        .article-card:hover .article-arrow {
+            transform: translateX(4px);
+        }
+
+        /* Prose styles for article content */
+        .prose-content { line-height: 1.8; font-size: 15px; }
+        .prose-content h1 { font-size: 1.75rem; font-weight: 800; margin: 2rem 0 1rem; }
+        .prose-content h2 { font-size: 1.375rem; font-weight: 700; margin: 1.75rem 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid rgba(99,102,241,0.2); }
+        .prose-content h3 { font-size: 1.125rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+        .prose-content p { margin: 0.875rem 0; }
+        .prose-content ul { list-style: disc; padding-left: 1.5rem; margin: 0.75rem 0; }
+        .prose-content ol { list-style: decimal; padding-left: 1.5rem; margin: 0.75rem 0; }
+        .prose-content li { margin: 0.3rem 0; }
+        .prose-content a { color: #818cf8; text-decoration: underline; }
+        .prose-content a:hover { color: #a5b4fc; }
+        .prose-content code {
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.85em;
+            padding: 0.15em 0.4em;
+            border-radius: 4px;
+        }
+        .prose-content pre {
+            border-radius: 10px;
+            padding: 1.25rem;
+            overflow-x: auto;
+            margin: 1.25rem 0;
+        }
+        .prose-content pre code { background: none; padding: 0; font-size: 0.875rem; }
+        .prose-content blockquote {
+            border-left: 3px solid;
+            padding: 0.5rem 0 0.5rem 1.25rem;
+            margin: 1.25rem 0;
+            font-style: italic;
+        }
+        .prose-content img { max-width: 100%; border-radius: 10px; margin: 1rem 0; }
+        .prose-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .prose-content th { padding: 0.6rem 1rem; text-align: left; font-weight: 600; }
+        .prose-content td { padding: 0.6rem 1rem; border-top: 1px solid rgba(99,102,241,0.15); }
+        body.theme-dark .prose-content th { background: rgba(99,102,241,0.1); }
+        body.theme-light .prose-content th { background: rgba(99,102,241,0.08); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.6s ease both; }
+        .animate-fade-in-delay { animation: fadeIn 0.6s 0.1s ease both; }
+        .animate-fade-in-delay2 { animation: fadeIn 0.6s 0.2s ease both; }
+
+        .tag-pill { transition: all 0.2s; }
+        .tag-pill:hover { transform: translateY(-1px); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+    </style>
+</head>
+<body class="theme-dark font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- 个性化设置面板 -->
+    <div class="fixed top-5 right-5 z-[150]">
+        <button aria-label="设置" onclick="toggleThemeMenu(event)" class="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-slate-400 hover:text-indigo-400 hover:scale-105 active:scale-95 transition-all shadow-lg cursor-pointer">
+            <i id="theme-icon" class="fas fa-palette text-sm"></i>
+        </button>
+        <div id="theme-panel" class="absolute right-0 top-full mt-2 w-60 bg-slate-900/95 border border-slate-700/80 rounded-2xl shadow-2xl hidden backdrop-blur-md p-4 space-y-3 z-[160]" onclick="event.stopPropagation()">
+            <div class="text-[11px] font-bold text-slate-400 px-1 mb-1.5">语言 / Language</div>
+            <div class="flex gap-2 mb-3 border-b border-slate-800 pb-3">
+                <button onclick="setLanguage('zh')" class="flex-1 py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs text-center hover:bg-slate-700 transition-colors cursor-pointer">中文</button>
+                <button onclick="setLanguage('en')" class="flex-1 py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs text-center hover:bg-slate-700 transition-colors cursor-pointer">English</button>
+            </div>
+            <div class="text-[11px] font-bold text-slate-400 px-1">基础色彩模式</div>
+            <div class="flex gap-2">
+                <button onclick="setBaseTheme('theme-light')" class="flex-1 py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs text-center hover:bg-slate-700 transition-colors cursor-pointer flex items-center justify-center gap-1"><i class="fas fa-sun text-amber-500"></i> 日间</button>
+                <button onclick="setBaseTheme('theme-dark')" class="flex-1 py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs text-center hover:bg-slate-700 transition-colors cursor-pointer flex items-center justify-center gap-1"><i class="fas fa-moon text-indigo-400"></i> 夜间</button>
+            </div>
+            <div class="admin-only space-y-1.5 px-1 border-t border-slate-800 pt-3 mt-1">
+                <div class="flex justify-between items-center">
+                    <label class="text-[11px] text-slate-400 font-bold">自定义背景 (云端同步)</label>
+                    <button onclick="clearCustomBg()" id="clear-bg-btn" class="text-[10px] text-red-400 hover:underline hidden">清除壁纸</button>
+                </div>
+                <div class="flex gap-1.5">
+                    <input type="text" id="custom-bg-input" placeholder="输入图片网址 https://..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <button onclick="applyCustomBg()" class="bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs hover:bg-indigo-500 cursor-pointer shrink-0">应用</button>
+                </div>
+            </div>
+            <div class="admin-only space-y-1.5 px-1 border-t border-slate-800 pt-3 mt-1">
+                <label class="text-[11px] text-slate-400 font-bold">修改管理员密码 (云端同步)</label>
+                <div class="flex gap-1.5">
+                    <input type="password" id="custom-pwd-input" placeholder="输入新密码" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100 focus:outline-none focus:border-emerald-500">
+                    <button onclick="updateAdminPwd()" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-xs hover:bg-emerald-500 cursor-pointer shrink-0">保存</button>
+                </div>
+            </div>
+            <div class="admin-only border-t border-slate-800 pt-2 mt-2">
+                <button onclick="logoutAdmin()" class="w-full py-1.5 rounded-lg bg-red-950/40 border border-red-900/40 text-red-400 text-[11px] text-center hover:bg-red-900/40 transition-colors cursor-pointer">退出后台管理</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4 py-12 lg:py-16 flex flex-col items-center">
+
+        <!-- 顶部：时间 + 问候语 -->
+        <div class="text-center mb-10 animate-fade-in">
+            <h1 id="clock" class="text-5xl lg:text-7xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 mb-3">00:00:00</h1>
+            <div class="flex items-center justify-center space-x-3 text-sm md:text-base font-medium tracking-wide opacity-90">
+                <span id="greeting" class="text-indigo-400">正在筹备问候语...</span>
+                <span class="opacity-30">|</span>
+                <span id="weather-info" class="flex items-center gap-1.5 text-emerald-400">
+                    <i class="fas fa-spinner fa-spin text-xs"></i> <span>正在定位...</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- 搜索栏 -->
+        <div class="w-full max-w-2xl mb-12 relative z-[100] animate-fade-in-delay">
+            <form id="search-form" action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer" class="relative">
+                <div class="flex items-center glass-input rounded-2xl border border-slate-700/40 shadow-2xl focus-within:border-indigo-500/80 transition-all duration-300">
+                    <div class="relative pl-4">
+                        <button type="button" id="engine-btn" onclick="toggleEngineMenu(event)" class="flex items-center space-x-2 text-slate-400 hover:text-indigo-400 transition-colors py-4 pr-2 cursor-pointer">
+                            <i id="engine-icon" class="fab fa-google text-blue-400"></i>
+                            <i class="fas fa-chevron-down text-xs opacity-50"></i>
+                        </button>
+                        <div id="engine-menu" class="absolute left-2 top-full mt-2 w-36 bg-slate-950/95 border border-slate-800 rounded-xl shadow-2xl hidden backdrop-blur-md overflow-hidden z-[110]">
+                            <button type="button" onclick="selectEngine('google')" class="w-full text-left px-4 py-2.5 hover:bg-indigo-600/20 text-sm flex items-center space-x-2 cursor-pointer"><i class="fab fa-google text-blue-400"></i> <span>Google</span></button>
+                            <button type="button" onclick="selectEngine('bing')" class="w-full text-left px-4 py-2.5 hover:bg-indigo-600/20 text-sm flex items-center space-x-2 cursor-pointer"><i class="fab fa-microsoft text-teal-400"></i> <span>Bing</span></button>
+                            <button type="button" onclick="selectEngine('baidu')" class="w-full text-left px-4 py-2.5 hover:bg-indigo-600/20 text-sm flex items-center space-x-2 cursor-pointer"><i class="fas fa-paw text-red-400"></i> <span>Baidu</span></button>
+                            <button type="button" onclick="selectEngine('github')" class="w-full text-left px-4 py-2.5 hover:bg-indigo-600/20 text-sm flex items-center space-x-2 cursor-pointer"><i class="fab fa-github text-slate-400"></i> <span>GitHub</span></button>
+                        </div>
+                    </div>
+                    <input type="text" id="search-input" name="q" placeholder="在 Google 中搜索..." autocomplete="off" class="w-full bg-transparent border-none py-4 px-3 focus:outline-none text-base">
+                    <button type="submit" class="mr-3 p-2.5 text-slate-400 hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-search text-lg"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 文章列表视图 -->
+        <div id="article-list-view" class="w-full relative z-10">
+            <!-- 博客头部 -->
+            <div class="text-center mb-10 animate-fade-in-delay2">
+                <h2 class="text-3xl lg:text-4xl font-bold mb-3">
+                    <i class="fas fa-blog text-indigo-400 mr-3"></i> Blog
+                </h2>
+                <p class="text-slate-400 text-sm" id="blog-subtitle">记录思考，分享技术，偶尔生活</p>
+            </div>
+
+            <!-- 标签筛选 -->
+            <div class="flex flex-wrap justify-center gap-2 mb-8" id="tag-filter">
+                <button onclick="filterByTag(null)" class="tag-pill px-4 py-1.5 rounded-full text-xs font-medium glass-card border border-indigo-500/30 text-indigo-400">全部</button>
+            </div>
+
+            <!-- 文章网格 -->
+            <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                <!-- JS 动态渲染 -->
+            </div>
+
+            <!-- 关于 -->
+            <div class="glass-card rounded-2xl p-6 mb-8 animate-fade-in">
+                <div class="flex items-start gap-5">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shrink-0">
+                        C
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-indigo-400 mb-1">关于我</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">爱写代码，爱打游戏，偶尔写点博客记录折腾过的技术方案。部署在 Cloudflare Pages，源码开源。</p>
+                        <div class="flex gap-3 mt-3">
+                            <a href="https://github.com/LxCheeseRoll" target="_blank" rel="noopener noreferrer" class="text-xs text-slate-400 hover:text-slate-200 transition-colors"><i class="fab fa-github mr-1"></i>GitHub</a>
+                            <a href="https://cheeseroll.kdns.fr/" target="_blank" class="text-xs text-slate-400 hover:text-slate-200 transition-colors"><i class="fas fa-link mr-1"></i>主页</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 文章详情视图（默认隐藏） -->
+        <div id="article-detail-view" class="w-full relative z-10 hidden">
+            <button onclick="backToList()" class="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-indigo-400 transition-colors cursor-pointer">
+                <i class="fas fa-arrow-left"></i> <span>返回文章列表</span>
+            </button>
+            <article class="glass-card rounded-2xl p-6 md:p-10">
+                <header class="mb-8 pb-6 border-b border-slate-700/30">
+                    <div class="flex flex-wrap gap-2 mb-3" id="detail-tags"></div>
+                    <h1 id="detail-title" class="text-2xl md:text-3xl font-extrabold mb-4 leading-tight"></h1>
+                    <div class="flex items-center gap-4 text-xs text-slate-400">
+                        <span id="detail-date"><i class="far fa-calendar mr-1"></i></span>
+                        <span id="detail-author"><i class="far fa-user mr-1"></i></span>
+                    </div>
+                </header>
+                <div id="detail-content" class="prose-content"></div>
+            </article>
+        </div>
+
+        <footer id="admin-trigger" ondblclick="triggerAdminLogin()" class="text-slate-500 text-xs mt-10 cursor-pointer select-none tracking-wide hover:text-indigo-400/70 transition-colors">
+            <span>&copy; 2025 CheeseRoll · Powered by Cloudflare Pages</span>
+            <span id="admin-badge" class="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 font-bold hidden">已登入</span>
+        </footer>
+    </div>
+
+    <!-- 管理员登录弹窗 -->
+    <div id="modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center z-[200] px-4">
+        <div class="glass-card rounded-2xl p-8 w-full max-w-sm relative animate-fade-in">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold text-indigo-400 mb-6 text-center"><i class="fas fa-lock mr-2"></i>后台管理</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">管理员密码</label>
+                    <input type="password" id="admin-pwd-input" placeholder="输入密码..." class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" onkeydown="if(event.key==='Enter')loginAdmin()">
+                </div>
+                <button onclick="loginAdmin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-3 text-sm font-semibold transition-colors cursor-pointer">登入</button>
+                <p id="login-error" class="text-red-400 text-xs text-center hidden">密码错误</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文章编辑弹窗（管理员） -->
+    <div id="article-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm hidden flex items-start justify-center z-[200] px-4 py-10 overflow-y-auto">
+        <div class="glass-card rounded-2xl p-8 w-full max-w-2xl relative animate-fade-in">
+            <button onclick="closeArticleModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold text-indigo-400 mb-6"><i class="fas fa-edit mr-2"></i><span id="modal-title-label">新建文章</span></h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">标题</label>
+                    <input type="text" id="art-title" placeholder="文章标题" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs text-slate-400 mb-1 block">标签（用逗号分隔）</label>
+                        <input type="text" id="art-tags" placeholder="技术, 笔记" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 mb-1 block">日期</label>
+                        <input type="date" id="art-date" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">作者</label>
+                    <input type="text" id="art-author" placeholder="CheeseRoll" value="CheeseRoll" class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">正文（Markdown 格式）</label>
+                    <textarea id="art-content" rows="18" placeholder="# 标题&#10;&#10;正文内容..." class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors font-mono leading-relaxed resize-y"></textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button onclick="saveArticle()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-3 text-sm font-semibold transition-colors cursor-pointer">保存文章</button>
+                    <button onclick="closeArticleModal()" class="px-6 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl py-3 text-sm font-semibold transition-colors cursor-pointer">取消</button>
+                </div>
+                <div id="art-error" class="text-red-400 text-xs text-center hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ============================================================
+    // 全局状态
+    // ============================================================
+    let isAdmin = false;
+    let adminPwd = 'admin888';
+    let articles = [];
+    let currentTag = null;
+    let editingSlug = null;
+    let searchEngine = localStorage.getItem('searchEngine') || 'google';
+    let baseTheme = localStorage.getItem('baseTheme') || 'theme-dark';
+    let lang = localStorage.getItem('lang') || 'zh';
+    let siteConfig = {};
+    let customBgApplied = false;
+
+    const i18n = {
+        zh: {
+            greeting: ['早上好', '上午好', '中午好', '下午好', '傍晚好', '晚上好', '夜深了'],
+            weatherLoading: '正在定位...',
+            searchGoogle: '在 Google 中搜索...',
+            searchBing: '在 Bing 中搜索...',
+            searchBaidu: '在百度中搜索...',
+            searchGithub: '在 GitHub 中搜索...',
+            blogSubtitle: '记录思考，分享技术，偶尔生活',
+            tagAll: '全部',
+            articleCount: (n) => `共 ${n} 篇文章`,
+            noArticle: '暂无文章，管理员可点击上方 + 添加',
+            noArticleAdmin: '点击上方 + 添加第一篇文章',
+        },
+        en: {
+            greeting: ['Good Morning', 'Good Morning', 'Noon', 'Good Afternoon', 'Good Evening', 'Good Evening', 'Late Night'],
+            weatherLoading: 'Locating...',
+            searchGoogle: 'Search Google...',
+            searchBing: 'Search Bing...',
+            searchBaidu: 'Search Baidu...',
+            searchGithub: 'Search GitHub...',
+            blogSubtitle: 'Thoughts, tech, and sometimes life',
+            tagAll: 'All',
+            articleCount: (n) => `${n} article${n !== 1 ? 's' : ''}`,
+            noArticle: 'No articles yet',
+            noArticleAdmin: 'Click + above to add the first article',
+        }
+    };
+
+    // ============================================================
+    // 工具函数
+    // ============================================================
+    function $(id) { return document.getElementById(id); }
+    function slugify(title) {
+        return title.toLowerCase().replace(/[^\w\u4e00-\u9fa5]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || Date.now().toString();
+    }
+    function parseMarkdown(text) {
+        return text
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+            .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+            .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+            .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+            .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+            .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+            .replace(/^- (.+)$/gm, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+            .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+            .replace(/^---$/gm, '<hr>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+    }
+
+    // ============================================================
+    // 主题 & 语言
+    // ============================================================
+    function setBaseTheme(theme) {
+        baseTheme = theme;
+        localStorage.setItem('baseTheme', theme);
+        applyTheme();
+    }
+    function applyTheme() {
+        document.body.className = baseTheme + ' font-sans antialiased selection:bg-indigo-500 selection:text-white';
+        document.body.classList.toggle('is-admin', isAdmin);
+        if (customBgApplied) document.body.classList.add('has-custom-bg');
+        else document.body.classList.remove('has-custom-bg');
+    }
+    function setLanguage(l) {
+        lang = l;
+        localStorage.setItem('lang', l);
+        applyLanguage();
+        renderArticles();
+    }
+    function applyLanguage() {
+        const t = i18n[lang];
+        document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+        $('search-input').placeholder = t['search' + searchEngine.charAt(0).toUpperCase() + searchEngine.slice(1)];
+        $('blog-subtitle').textContent = t.blogSubtitle;
+    }
+
+    // ============================================================
+    // 时钟 & 天气
+    // ============================================================
+    function updateClock() {
+        const now = new Date();
+        const h = now.getHours();
+        const t = i18n[lang].greeting[Math.min(Math.floor(h / 4), 6)];
+        $('clock').textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        $('greeting').textContent = t;
+    }
+    function fetchWeather() {
+        const t = i18n[lang].weatherLoading;
+        fetch('https://wttr.in/?format=%c%t+%C&lang=' + (lang === 'zh' ? 'zh' : 'en'))
+            .then(r => r.text())
+            .then(d => {
+                const parts = d.trim().split(' ');
+                if (parts.length >= 2) {
+                    const temp = parts[0], cond = parts.slice(1).join(' ');
+                    $('weather-info').innerHTML = `<i class="fas fa-cloud text-xs"></i> <span>${cond} ${temp}</span>`;
+                }
+            })
+            .catch(() => { $('weather-info').innerHTML = `<i class="fas fa-globe text-xs"></i> <span>${lang === 'zh' ? '天气服务不可用' : 'Weather unavailable'}</span>`; });
+    }
+
+    // ============================================================
+    // 搜索引擎
+    // ============================================================
+    function toggleEngineMenu(e) {
+        e.stopPropagation();
+        $('engine-menu').classList.toggle('hidden');
+    }
+    function selectEngine(name) {
+        searchEngine = name;
+        localStorage.setItem('searchEngine', name);
+        const engines = {
+            google: { icon: 'fab fa-google text-blue-400', action: 'https://www.google.com/search', name: 'q' },
+            bing: { icon: 'fab fa-microsoft text-teal-400', action: 'https://www.bing.com/search', name: 'q' },
+            baidu: { icon: 'fas fa-paw text-red-400', action: 'https://www.baidu.com/s', name: 'wd' },
+            github: { icon: 'fab fa-github text-slate-400', action: 'https://github.com/search', name: 'q' }
+        };
+        const eng = engines[name];
+        $('engine-icon').className = eng.icon;
+        $('search-form').action = eng.action;
+        $('search-form').querySelector('[name="q"]').name = eng.name;
+        $('search-input').placeholder = i18n[lang]['search' + name.charAt(0).toUpperCase() + name.slice(1)];
+        $('engine-menu').classList.add('hidden');
+    }
+
+    // ============================================================
+    // 云端配置（壁纸 / 密码）
+    // ============================================================
+    async function loadSiteConfig() {
+        try {
+            const r = await fetch('/api/config');
+            const data = await r.json();
+            if (data.wallpaper) applyBg(data.wallpaper);
+            if (data.adminPwd) adminPwd = data.adminPwd;
+        } catch { /* localStorage fallback */ }
+    }
+    async function saveSiteConfig() {
+        try {
+            await fetch('/api/config', { method: 'POST', body: JSON.stringify(siteConfig) });
+        } catch {}
+    }
+    function applyBg(url) {
+        document.body.style.backgroundImage = `url(${url})`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundAttachment = 'fixed';
+        customBgApplied = true;
+        applyTheme();
+        if ($('custom-bg-input')) $('custom-bg-input').value = url;
+        if ($('clear-bg-btn')) $('clear-bg-btn').classList.remove('hidden');
+    }
+    function applyCustomBg() {
+        const url = $('custom-bg-input').value.trim();
+        if (!url) return;
+        applyBg(url);
+        siteConfig.wallpaper = url;
+        saveSiteConfig();
+    }
+    function clearCustomBg() {
+        document.body.style.backgroundImage = '';
+        customBgApplied = false;
+        applyTheme();
+        siteConfig.wallpaper = '';
+        if ($('custom-bg-input')) $('custom-bg-input').value = '';
+        if ($('clear-bg-btn')) $('clear-bg-btn').classList.add('hidden');
+        saveSiteConfig();
+    }
+    async function updateAdminPwd() {
+        const pwd = $('custom-pwd-input').value.trim();
+        if (!pwd) return;
+        adminPwd = pwd;
+        siteConfig.adminPwd = pwd;
+        await saveSiteConfig();
+        $('custom-pwd-input').value = '';
+        alert(lang === 'zh' ? '密码已更新' : 'Password updated');
+    }
+    function logoutAdmin() {
+        isAdmin = false;
+        applyTheme();
+        if ($('admin-badge')) $('admin-badge').classList.add('hidden');
+    }
+
+    // ============================================================
+    // 文章管理
+    // ============================================================
+    async function loadArticles() {
+        try {
+            const r = await fetch('/api/links');
+            articles = await r.json();
+        } catch {
+            articles = JSON.parse(localStorage.getItem('blog_articles') || '[]');
+        }
+        renderArticles();
+    }
+    async function saveArticles() {
+        try {
+            await fetch('/api/links', { method: 'POST', body: JSON.stringify(articles) });
+        } catch {
+            localStorage.setItem('blog_articles', JSON.stringify(articles));
+        }
+    }
+    function renderTagFilter() {
+        const tags = [...new Set(articles.flatMap(a => a.tags || []))];
+        const filter = $('tag-filter');
+        filter.innerHTML = `
+            <button onclick="filterByTag(null)" class="tag-pill px-4 py-1.5 rounded-full text-xs font-medium glass-card ${!currentTag ? 'border-indigo-500/50 text-indigo-400' : 'border-slate-600 text-slate-400'}">${i18n[lang].tagAll}</button>
+            ${tags.map(tag => `
+                <button onclick="filterByTag('${tag}')" class="tag-pill px-4 py-1.5 rounded-full text-xs font-medium glass-card ${currentTag === tag ? 'border-indigo-500/50 text-indigo-400' : 'border-slate-600 text-slate-400'}">${tag}</button>
+            `).join('')}
+            <button onclick="openArticleModal()" class="admin-only tag-pill px-3 py-1.5 rounded-full text-xs font-medium glass-card border border-dashed border-indigo-500/40 text-indigo-400 hover:border-indigo-500/70 hover:text-indigo-300 transition-colors cursor-pointer">
+                <i class="fas fa-plus"></i>
+            </button>
+        `;
+    }
+    function renderArticles() {
+        renderTagFilter();
+        const filtered = currentTag ? articles.filter(a => (a.tags || []).includes(currentTag)) : articles;
+        const grid = $('articles-grid');
+        if (filtered.length === 0) {
+            grid.innerHTML = `
+                <div class="col-span-2 text-center py-12 text-slate-500">
+                    <i class="fas fa-file-alt text-4xl mb-4 opacity-30"></i>
+                    <p class="text-sm">${isAdmin ? i18n[lang].noArticleAdmin : i18n[lang].noArticle}</p>
+                </div>`;
+            return;
+        }
+        const accentColors = ['indigo', 'purple', 'pink', 'emerald', 'blue', 'amber'];
+        grid.innerHTML = filtered.map((a, i) => {
+            const color = accentColors[i % accentColors.length];
+            const excerpt = (a.content || '').replace(/[#*`>\[\]!]/g, '').slice(0, 100);
+            return `
+                <div class="article-card glass-card rounded-2xl p-6 cursor-pointer hover:border-${color}-500/40 transition-all duration-300 hover:-translate-y-1 animate-fade-in" onclick="showArticle('${a.slug}')">
+                    <div class="flex flex-wrap gap-1.5 mb-3">
+                        ${(a.tags || []).map(t => `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-${color}-500/15 text-${color}-400 border border-${color}-500/20">${t}</span>`).join('')}
+                    </div>
+                    <h3 class="text-base font-bold mb-2 leading-snug line-clamp-2">${a.title}</h3>
+                    <p class="text-xs text-slate-400 mb-4 leading-relaxed line-clamp-2">${excerpt}</p>
+                    <div class="flex items-center justify-between text-[11px] text-slate-500">
+                        <span><i class="far fa-calendar mr-1"></i>${a.date || ''}</span>
+                        <span class="text-${color}-400 article-arrow transition-transform"><i class="fas fa-arrow-right"></i></span>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+    function filterByTag(tag) {
+        currentTag = tag;
+        renderArticles();
+    }
+    function showArticle(slug) {
+        const a = articles.find(x => x.slug === slug);
+        if (!a) return;
+        $('article-list-view').classList.add('hidden');
+        $('article-detail-view').classList.remove('hidden');
+        $('detail-title').textContent = a.title;
+        $('detail-date').innerHTML = `<i class="far fa-calendar mr-1"></i>${a.date || ''}`;
+        $('detail-author').innerHTML = `<i class="far fa-user mr-1"></i>${a.author || 'CheeseRoll'}`;
+        $('detail-tags').innerHTML = (a.tags || []).map(t =>
+            `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">${t}</span>`
+        ).join('');
+        $('detail-content').innerHTML = `<p>${parseMarkdown(a.content || '')}</p>`;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function backToList() {
+        $('article-detail-view').classList.add('hidden');
+        $('article-list-view').classList.remove('hidden');
+    }
+
+    // ============================================================
+    // 管理员弹窗
+    // ============================================================
+    function triggerAdminLogin() {
+        $('modal').classList.remove('hidden');
+        $('admin-pwd-input').focus();
+    }
+    function closeModal() { $('modal').classList.add('hidden'); $('login-error').classList.add('hidden'); }
+    function loginAdmin() {
+        if ($('admin-pwd-input').value === adminPwd) {
+            isAdmin = true;
+            applyTheme();
+            if ($('admin-badge')) $('admin-badge').classList.remove('hidden');
+            closeModal();
+            renderArticles();
+        } else {
+            $('login-error').classList.remove('hidden');
+        }
+    }
+
+    // ============================================================
+    // 文章编辑弹窗
+    // ============================================================
+    function openArticleModal(slug) {
+        editingSlug = slug;
+        const a = slug ? articles.find(x => x.slug === slug) : null;
+        $('modal-title-label').textContent = a ? '编辑文章' : (lang === 'zh' ? '新建文章' : 'New Article');
+        $('art-title').value = a ? a.title : '';
+        $('art-tags').value = a ? (a.tags || []).join(', ') : '';
+        $('art-date').value = a ? a.date : new Date().toISOString().slice(0, 10);
+        $('art-author').value = a ? a.author : 'CheeseRoll';
+        $('art-content').value = a ? a.content : '';
+        $('art-error').classList.add('hidden');
+        $('article-modal').classList.remove('hidden');
+    }
+    function openArticleModal() { openArticleModal(null); }
+    function closeArticleModal() { $('article-modal').classList.add('hidden'); editingSlug = null; }
+    async function saveArticle() {
+        const title = $('art-title').value.trim();
+        const tagsRaw = $('art-tags').value.trim();
+        const date = $('art-date').value.trim();
+        const author = $('art-author').value.trim() || 'CheeseRoll';
+        const content = $('art-content').value;
+        if (!title) { $('art-error').textContent = lang === 'zh' ? '请填写标题' : 'Title is required'; $('art-error').classList.remove('hidden'); return; }
+        const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+        const slug = editingSlug || slugify(title);
+        if (editingSlug) {
+            const idx = articles.findIndex(x => x.slug === editingSlug);
+            if (idx >= 0) { articles[idx] = { ...articles[idx], title, tags, date, author, content }; }
+        } else {
+            if (articles.find(x => x.slug === slug)) { $('art-error').textContent = lang === 'zh' ? '该标题已存在，请换一个' : 'Title already exists, please use a different one'; $('art-error').classList.remove('hidden'); return; }
+            articles.unshift({ slug, title, tags, date, author, content });
+        }
+        await saveArticles();
+        closeArticleModal();
+        renderArticles();
+    }
+
+    // ============================================================
+    // 全局事件
+    // ============================================================
+    document.addEventListener('click', () => {
+        $('engine-menu').classList.add('hidden');
+    });
+    function toggleThemeMenu(e) {
+        e.stopPropagation();
+        $('theme-panel').classList.toggle('hidden');
+    }
+    document.addEventListener('click', (e) => {
+        if (!$('theme-panel').contains(e.target) && !$('theme-icon').contains(e.target) && !$('theme-panel').classList.contains('hidden')) {
+            $('theme-panel').classList.add('hidden');
+        }
+    });
+
+    // ============================================================
+    // 初始化
+    // ============================================================
+    (async function init() {
+        applyTheme();
+        applyLanguage();
+        updateClock();
+        setInterval(updateClock, 1000);
+        fetchWeather();
+        selectEngine(searchEngine);
+        await loadSiteConfig();
+        await loadArticles();
+        applyTheme();
+    })();
+    </script>
+</body>
+</html>

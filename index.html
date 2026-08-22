@@ -42,7 +42,7 @@
         body.theme-light .prose-content blockquote { border-color: #c7d2fe; color: #475569; }
 
         body.theme-dark {
-            background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+            background: linear-gradient(180deg, #3a0a1a 0%, #1a0610 35%, #050307 100%);
             color: #f8fafc;
         }
         body.theme-dark .glass-card {
@@ -293,7 +293,6 @@
                 <i class="fas fa-seedling text-5xl text-indigo-400/40 mb-4"></i>
                 <h3 class="text-lg font-semibold text-slate-300 mb-2">友链筹备中</h3>
                 <p class="text-sm text-slate-400 leading-relaxed max-w-md mx-auto">这里将列出我关注的朋友们的博客。<br>目前还在收集，暂未上线，敬请期待 🌱</p>
-                <p class="text-xs text-slate-500 mt-6">Friends page coming soon. Inspired by <a href="https://github.com/openRin/Rin" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:underline">openRin/Rin</a></p>
             </div>
         </section>
 
@@ -313,7 +312,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-indigo-400 mb-1">关于我</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">爱写代码，爱打游戏，偶尔写点博客记录折腾过的技术方案。部署在 Cloudflare Pages，源码开源。</p>
+                        <p class="text-sm text-slate-400 leading-relaxed">文字学爱好者。</p>
                         <div class="flex gap-3 mt-3">
                             <a href="https://github.com/LxCheeseRoll" target="_blank" rel="noopener noreferrer" class="text-xs text-slate-400 hover:text-slate-200 transition-colors"><i class="fab fa-github mr-1"></i>GitHub</a>
                             <a href="https://cheeseroll.kdns.fr/" target="_blank" class="text-xs text-slate-400 hover:text-slate-200 transition-colors"><i class="fas fa-link mr-1"></i>主页</a>
@@ -323,14 +322,15 @@
             </div>
 
             <div class="glass-card rounded-2xl p-6 md:p-8 mb-4">
-                <h3 class="text-lg font-bold text-indigo-400 mb-3"><i class="fas fa-cog mr-2"></i>关于本站</h3>
-                <ul class="text-sm text-slate-400 space-y-2 leading-relaxed">
-                    <li>· 单文件 HTML + Tailwind CDN，托管在 Cloudflare Pages</li>
-                    <li>· 文章 API 使用 Cloudflare Workers + KV 存储</li>
-                    <li>· 布局灵感来自 <a href="https://github.com/openRin/Rin" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:underline">openRin/Rin</a></li>
-                    <li>· 时间问候语 · 实时天气 · 日/夜主题 · 4 种搜索引擎</li>
-                    <li>· 管理员后台：双击页脚版权文字</li>
-                </ul>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-bold text-indigo-400"><i class="fas fa-bullhorn mr-2"></i>更新内容</h3>
+                    <button onclick="openUpdatesModal()" class="admin-only px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors cursor-pointer">
+                        <i class="fas fa-edit mr-1"></i>编辑
+                    </button>
+                </div>
+                <div id="updates-content" class="prose-content text-sm text-slate-400 leading-relaxed">
+                    <!-- JS 动态渲染 -->
+                </div>
             </div>
         </section>
 
@@ -353,7 +353,7 @@
         </div>
 
         <footer id="admin-trigger" ondblclick="triggerAdminLogin()" class="text-slate-500 text-xs mt-10 text-center cursor-pointer select-none tracking-wide hover:text-indigo-400/70 transition-colors">
-            <span>&copy; 2025 CheeseRoll · Powered by Cloudflare Pages · Inspired by <a href="https://github.com/openRin/Rin" target="_blank" rel="noopener noreferrer" class="hover:underline">Rin</a></span>
+            <span>&copy; 2025 CheeseRoll</span>
             <span id="admin-badge" class="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 font-bold hidden">已登入</span>
         </footer>
     </main>
@@ -407,6 +407,26 @@
                     <button onclick="closeArticleModal()" class="px-6 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl py-3 text-sm font-semibold transition-colors cursor-pointer">取消</button>
                 </div>
                 <div id="art-error" class="text-red-400 text-xs text-center hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 更新内容编辑弹窗 -->
+    <div id="updates-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm hidden flex items-start justify-center z-[200] px-4 py-10 overflow-y-auto">
+        <div class="glass-card rounded-2xl p-8 w-full max-w-2xl relative animate-fade-in">
+            <button onclick="closeUpdatesModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"><i class="fas fa-times"></i></button>
+            <h3 class="text-xl font-bold text-indigo-400 mb-6"><i class="fas fa-bullhorn mr-2"></i>编辑更新内容</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-slate-400 mb-1 block">正文（支持 Markdown · 留空则显示默认提示）</label>
+                    <textarea id="updates-input" rows="14" placeholder="- 2025-08-22：上线个人博客&#10;- 新增了关于页&#10;..." class="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors font-mono leading-relaxed resize-y"></textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button onclick="saveUpdates()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl py-3 text-sm font-semibold transition-colors cursor-pointer">保存</button>
+                    <button onclick="clearUpdates()" class="px-4 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl py-3 text-sm font-semibold transition-colors cursor-pointer">清空</button>
+                    <button onclick="closeUpdatesModal()" class="px-6 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl py-3 text-sm font-semibold transition-colors cursor-pointer">取消</button>
+                </div>
+                <div id="updates-error" class="text-red-400 text-xs text-center hidden"></div>
             </div>
         </div>
     </div>
@@ -503,6 +523,8 @@
         });
         // URL hash
         if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
+        // about 页重新渲染 updates 内容（可能刚刚被编辑）
+        if (name === 'about' && typeof renderUpdates === 'function') renderUpdates();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function toggleSearchBar() {
@@ -510,6 +532,48 @@
         if (!w) return;
         w.classList.toggle('hidden');
         if (!w.classList.contains('hidden')) $('search-input').focus();
+    }
+
+    // ============================================================
+    // 更新内容（关于页内可编辑模块，本地存储）
+    // ============================================================
+    const UPDATES_KEY = 'siteUpdates';
+    function loadUpdates() {
+        return localStorage.getItem(UPDATES_KEY) || '';
+    }
+    function saveUpdatesToStorage(text) {
+        localStorage.setItem(UPDATES_KEY, text);
+    }
+    function renderUpdates() {
+        const el = $('updates-content');
+        if (!el) return;
+        const txt = loadUpdates();
+        if (!txt) {
+            el.innerHTML = `<p class="text-slate-500 italic">${isAdmin ? '点击右上角“编辑”按钮添加更新内容' : '暂无更新'}</p>`;
+        } else {
+            el.innerHTML = `<div>${parseMarkdown(txt)}</div>`;
+        }
+    }
+    function openUpdatesModal() {
+        if (!isAdmin) return;
+        const ta = $('updates-input');
+        if (ta) ta.value = loadUpdates();
+        const err = $('updates-error'); if (err) err.classList.add('hidden');
+        $('updates-modal').classList.remove('hidden');
+    }
+    function closeUpdatesModal() {
+        $('updates-modal').classList.add('hidden');
+    }
+    function saveUpdates() {
+        const ta = $('updates-input');
+        if (!ta) return;
+        saveUpdatesToStorage(ta.value);
+        renderUpdates();
+        closeUpdatesModal();
+    }
+    function clearUpdates() {
+        const ta = $('updates-input');
+        if (ta) ta.value = '';
     }
 
     // ============================================================
@@ -853,6 +917,7 @@
         await loadSiteConfig();
         await loadArticles();
         applyTheme();
+        renderUpdates();
         // 根据 URL hash 初始化 view
         const initial = (location.hash || '#home').replace('#', '');
         if (['home','friends','about'].includes(initial)) showView(initial);

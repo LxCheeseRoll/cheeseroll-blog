@@ -5,8 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="CheeseRoll 的个人博客，分享技术与生活。">
     <meta name="keywords" content="个人博客, 技术分享, 程序员">
-    <title id="page-title">CheeseRoll's Blog</title>
+    <title id="page-title">芝士卷OvO</title>
 
+    <!-- 音乐播放器（左下角悬浮，与参考图同款样式） -->
+    <div id="music-player" class="fixed left-4 bottom-16 z-[120] flex items-center gap-2 select-none">
+        <button id="music-toggle" onclick="toggleMusic()" title="背景音乐" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-white shadow-xl cursor-pointer transition-transform hover:scale-110">
+            <i id="music-icon" class="fas fa-volume-xmark text-base"></i>
+        </button>
+        <div id="music-panel" class="hidden glass-card rounded-full pl-3 pr-3 py-2 flex items-center gap-2 shadow-xl">
+            <i class="fas fa-music text-xs text-pink-300"></i>
+            <span id="music-title" class="text-xs text-white font-medium max-w-[120px] truncate">未播放</span>
+            <input id="music-vol" type="range" min="0" max="100" value="60" oninput="setMusicVol(this.value)" class="w-20 accent-pink-400 cursor-pointer">
+        </div>
+    </div>
+    <audio id="bg-audio" loop preload="none" crossorigin="anonymous"></audio>
+
+    <!-- 雪花动画画布（固定背景层） -->
+    <canvas id="snow-canvas" class="fixed inset-0 pointer-events-none z-[60]"></canvas>
+
+    <!-- 网站图标：默认是 芝士 卷 Emoji 的 SVG 内联，免额外文件。如需更换，把下方 href 换为自定义图标的 .ico / .png / .svg 地址即可（建议放在仓库根目录的 favicon.ico） -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>%F0%9F%A7%80</text></svg>">
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -205,9 +223,9 @@
                 <!-- 品牌区：头像 + 名字 -->
                 <a href="#home" onclick="showView('home');return false" class="flex items-center gap-2.5 shrink-0 group">
                     <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-base shadow-md group-hover:scale-105 transition-transform">
-                        <span id="brand-avatar">C</span>
+                        <span id="brand-avatar">🧀</span>
                     </div>
-                    <span id="brand-name" class="hidden sm:inline font-bold text-base tracking-wide">CheeseRoll</span>
+                    <span id="brand-name" class="hidden sm:inline font-bold text-base tracking-wide">芝士卷OvO</span>
                 </a>
 
                 <!-- 胶囊导航 -->
@@ -1216,6 +1234,129 @@
     // ============================================================
     // 初始化
     // ============================================================
+    // ============================================================
+    // 背景音乐播放器
+    // ============================================================
+    const MUSIC_LIST = [
+        // 可改为自己的 mp3 直链（放在仓库根目录下的 audio/ 文件夹，或任何 https 直链）
+        // 这里是默认轻柔纯音乐占位
+        { title: 'Ambient · 1', src: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3' },
+        { title: 'Ambient · 2', src: 'https://cdn.pixabay.com/audio/2022/03/15/audio_b0d3a32a26.mp3' }
+    ];
+    let musicIdx = 0;
+    let musicPlaying = false;
+    function getAudio() { return document.getElementById('bg-audio'); }
+    function setMusicTitle(t) { const el = document.getElementById('music-title'); if (el) el.textContent = t; }
+    function setMusicIcon(playing) {
+        const i = document.getElementById('music-icon');
+        if (!i) return;
+        i.className = playing ? 'fas fa-volume-high text-base' : 'fas fa-volume-xmark text-base';
+    }
+    function playMusic() {
+        const a = getAudio();
+        a.src = MUSIC_LIST[musicIdx].src;
+        a.volume = (parseInt(document.getElementById('music-vol').value, 10) || 60) / 100;
+        setMusicTitle(MUSIC_LIST[musicIdx].title);
+        a.play().then(() => { musicPlaying = true; setMusicIcon(true); }).catch(() => { musicPlaying = false; setMusicIcon(false); });
+    }
+    function pauseMusic() {
+        const a = getAudio();
+        a.pause(); musicPlaying = false; setMusicIcon(false);
+    }
+    function toggleMusic() {
+        const panel = document.getElementById('music-panel');
+        if (musicPlaying) pauseMusic();
+        else { playMusic(); panel.classList.remove('hidden'); }
+    }
+    function setMusicVol(v) {
+        const a = getAudio(); a.volume = (parseInt(v, 10) || 0) / 100;
+    }
+    function nextMusic() {
+        musicIdx = (musicIdx + 1) % MUSIC_LIST.length;
+        if (musicPlaying) playMusic();
+        else setMusicTitle(MUSIC_LIST[musicIdx].title);
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const a = getAudio();
+        a.addEventListener('ended', nextMusic);
+    });
+    // 首次点击页面任意位置才自动尝试播放（浏览器策略）
+    let userInteracted = false;
+    function firstClickHintPlay() {
+        if (userInteracted) return;
+        userInteracted = true;
+        // 不主动播放，只解除静音限制；用户点 music 按钮才播
+    }
+    document.addEventListener('click', firstClickHintPlay, { once: true });
+
+    // ============================================================
+    // 雪花背景动画
+    // ============================================================
+    (function initSnow() {
+        const cvs = document.getElementById('snow-canvas');
+        if (!cvs) return;
+        const ctx = cvs.getContext('2d');
+        const flakes = [];
+        const COUNT = 80;
+        let w = 0, h = 0;
+        function resize() {
+            w = cvs.width = window.innerWidth;
+            h = cvs.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        for (let i = 0; i < COUNT; i++) {
+            flakes.push(makeFlake(true));
+        }
+        function makeFlake(initial) {
+            const r = Math.random() * 2.4 + 0.6; // 半径
+            return {
+                x: Math.random() * w,
+                y: initial ? Math.random() * h : -10,
+                r,
+                vy: 0.3 + r * 0.25 + Math.random() * 0.3,
+                vx: (Math.random() - 0.5) * 0.4,
+                swing: Math.random() * Math.PI * 2,
+                swingSpeed: 0.01 + Math.random() * 0.02,
+                swingAmp: 0.3 + Math.random() * 0.8,
+                opacity: 0.5 + Math.random() * 0.5
+            };
+        }
+        function draw() {
+            ctx.clearRect(0, 0, w, h);
+            for (const f of flakes) {
+                f.swing += f.swingSpeed;
+                f.x += f.vx + Math.sin(f.swing) * f.swingAmp;
+                f.y += f.vy;
+                if (f.y > h + 5) { Object.assign(f, makeFlake(false)); f.x = Math.random() * w; }
+                if (f.x < -10) f.x = w + 5;
+                if (f.x > w + 10) f.x = -5;
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,' + f.opacity.toFixed(2) + ')';
+                ctx.fill();
+                // 中心略亮一点
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.r * 0.5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,' + (f.opacity * 0.7).toFixed(2) + ')';
+                ctx.fill();
+            }
+            requestAnimationFrame(draw);
+        }
+        // 暗色模式才启用雪花（背景偏暗才看得见）
+        function tickLoop() {
+            if (document.body.classList.contains('dark')) {
+                cvs.style.opacity = '1';
+            } else {
+                cvs.style.opacity = '0';
+            }
+            requestAnimationFrame(tickLoop);
+        }
+        cvs.style.transition = 'opacity 0.4s';
+        draw();
+        tickLoop();
+    })();
+
     (async function init() {
         applyTheme();
         applyLanguage();

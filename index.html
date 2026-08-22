@@ -23,8 +23,9 @@
     <!-- 雪花动画画布（固定背景层） -->
     <canvas id="snow-canvas" class="fixed inset-0 pointer-events-none z-[60]"></canvas>
 
-    <!-- 网站图标：默认是 芝士 卷 Emoji 的 SVG 内联，免额外文件。如需更换，把下方 href 换为自定义图标的 .ico / .png / .svg 地址即可（建议放在仓库根目录的 favicon.ico） -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>%F0%9F%A7%80</text></svg>">
+    <!-- 网站图标：黄底白 C。文件在 public/favicon.ico, public/favicon.png。换成自己的图：把这两个文件覆盖即可。 -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1343,18 +1344,9 @@
             }
             requestAnimationFrame(draw);
         }
-        // 暗色模式才启用雪花（背景偏暗才看得见）
-        function tickLoop() {
-            if (document.body.classList.contains('dark')) {
-                cvs.style.opacity = '1';
-            } else {
-                cvs.style.opacity = '0';
-            }
-            requestAnimationFrame(tickLoop);
-        }
         cvs.style.transition = 'opacity 0.4s';
+        cvs.style.opacity = '1'; // 始终显示
         draw();
-        tickLoop();
     })();
 
     (async function init() {

@@ -15,6 +15,8 @@
         <div id="music-panel" class="hidden glass-card rounded-full pl-3 pr-3 py-2 flex items-center gap-2 shadow-xl">
             <i class="fas fa-music text-xs text-pink-300"></i>
             <span id="music-title" class="text-xs text-white font-medium max-w-[120px] truncate">未播放</span>
+            <button id="music-prev" onclick="prevMusic()" title="上一首" class="w-7 h-7 rounded-full hover:bg-white/15 text-white/80 hover:text-white flex items-center justify-center cursor-pointer transition-colors"><i class="fas fa-backward-step text-[10px]"></i></button>
+            <button id="music-next" onclick="nextMusic()" title="下一首" class="w-7 h-7 rounded-full hover:bg-white/15 text-white/80 hover:text-white flex items-center justify-center cursor-pointer transition-colors"><i class="fas fa-forward-step text-[10px]"></i></button>
             <input id="music-vol" type="range" min="0" max="100" value="60" oninput="setMusicVol(this.value)" class="w-20 accent-pink-400 cursor-pointer">
         </div>
     </div>
@@ -1249,15 +1251,10 @@
     // 背景音乐播放器
     // ============================================================
     const MUSIC_LIST = [
-        // 全部为免版权/宽松授权、可直链外网播放的背景音乐（非本地文件，不涉及 CF Pages 25MB 限制）
-        // 想换成自己的曲子：把 mp3 放仓库 audio/ 目录，src 改成 '/audio/xxx.mp3' 即可
-        // 授权说明：
-        //  - Pixabay：Pixabay License，可商用、不需署名
-        //  - SoundHelix：免费用于任何用途（https://www.soundhelix.com/copyright）
-        { title: 'Ambient Calm · Pixabay', src: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3' },
-        { title: 'SoundHelix Song 8', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3' },
-        { title: 'SoundHelix Song 1', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-        { title: 'SoundHelix Song 2', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' }
+        // 本地资源：放在仓库 audio/ 目录，CF Pages 部署后直链为 /audio/xxx.mp3
+        // 想加曲：把 mp3 丢 audio/，加一行 { title, src: '/audio/xxx.mp3' }
+        // 注意：CF Pages 单文件 25MB 上限，mp3 ≤ 5MB 最舒服
+        { title: 'Dream Away', src: '/audio/Dream Away.mp3' }
     ];
     let musicIdx = 0;
     let musicPlaying = false;
@@ -1294,6 +1291,11 @@
     }
     function nextMusic() {
         musicIdx = (musicIdx + 1) % MUSIC_LIST.length;
+        if (musicPlaying) playMusic();
+        else setMusicTitle(MUSIC_LIST[musicIdx].title);
+    }
+    function prevMusic() {
+        musicIdx = (musicIdx - 1 + MUSIC_LIST.length) % MUSIC_LIST.length;
         if (musicPlaying) playMusic();
         else setMusicTitle(MUSIC_LIST[musicIdx].title);
     }

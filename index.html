@@ -1249,10 +1249,15 @@
     // 背景音乐播放器
     // ============================================================
     const MUSIC_LIST = [
-        // 可改为自己的 mp3 直链（放在仓库根目录下的 audio/ 文件夹，或任何 https 直链）
-        // 这里是默认轻柔纯音乐占位
-        { title: 'Ambient · 1', src: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3' },
-        { title: 'Ambient · 2', src: 'https://cdn.pixabay.com/audio/2022/03/15/audio_b0d3a32a26.mp3' }
+        // 全部为免版权/宽松授权、可直链外网播放的背景音乐（非本地文件，不涉及 CF Pages 25MB 限制）
+        // 想换成自己的曲子：把 mp3 放仓库 audio/ 目录，src 改成 '/audio/xxx.mp3' 即可
+        // 授权说明：
+        //  - Pixabay：Pixabay License，可商用、不需署名
+        //  - SoundHelix：免费用于任何用途（https://www.soundhelix.com/copyright）
+        { title: 'Ambient Calm · Pixabay', src: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3' },
+        { title: 'SoundHelix Song 8', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3' },
+        { title: 'SoundHelix Song 1', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+        { title: 'SoundHelix Song 2', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' }
     ];
     let musicIdx = 0;
     let musicPlaying = false;

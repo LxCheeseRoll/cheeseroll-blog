@@ -130,6 +130,15 @@
         .tag-pill { transition: all 0.2s; }
         .tag-pill:hover { transform: translateY(-1px); }
 
+        /* Rin 风格导航选中态 */
+        .nav-link { color: inherit; }
+        body.theme-light .nav-link { color: #475569; }
+        body.theme-dark .nav-link { color: #cbd5e1; }
+        .nav-link.is-active { color: #818cf8 !important; background: rgba(129,140,248,0.12); }
+
+        /* view 切换动画 */
+        .view-section { animation: fadeIn 0.45s ease both; }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
@@ -177,11 +186,71 @@
         </div>
     </div>
 
-    <div class="max-w-5xl mx-auto px-4 py-12 lg:py-16 flex flex-col items-center">
+    <!-- Rin 风格 Header：sticky 顶栏，胶囊导航 -->
+    <header class="sticky top-0 z-50 pt-4">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="glass-card rounded-full pl-4 pr-3 py-2 flex items-center justify-between gap-3 shadow-2xl">
+                <!-- 品牌区：头像 + 名字 -->
+                <a href="#home" onclick="showView('home');return false" class="flex items-center gap-2.5 shrink-0 group">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-base shadow-md group-hover:scale-105 transition-transform">
+                        <span id="brand-avatar">C</span>
+                    </div>
+                    <span id="brand-name" class="hidden sm:inline font-bold text-base tracking-wide">CheeseRoll</span>
+                </a>
 
-        <!-- 顶部：时间 + 问候语 -->
-        <div class="text-center mb-10 animate-fade-in">
-            <h1 id="clock" class="text-5xl lg:text-7xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 mb-3">00:00:00</h1>
+                <!-- 胶囊导航 -->
+                <nav class="hidden md:flex items-center gap-1 text-sm font-medium">
+                    <a href="#home" data-route="home" onclick="showView('home');return false" class="nav-link px-4 py-2 rounded-full transition-colors hover:bg-white/10 text-indigo-400">文章</a>
+                    <a href="#friends" data-route="friends" onclick="showView('friends');return false" class="nav-link px-4 py-2 rounded-full transition-colors hover:bg-white/10">朋友们</a>
+                    <a href="#about" data-route="about" onclick="showView('about');return false" class="nav-link px-4 py-2 rounded-full transition-colors hover:bg-white/10">关于</a>
+                </nav>
+
+                <!-- 右侧操作区：语言切换 + 登录 -->
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button onclick="setLanguage(lang==='zh'?'en':'zh')" title="语言 / Language" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-sm font-semibold transition-colors">
+                        <span id="lang-flag">中</span>
+                    </button>
+                    <button id="search-toggle" onclick="toggleSearchBar()" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors" title="搜索">
+                        <i class="fas fa-search text-sm"></i>
+                    </button>
+                    <button onclick="triggerAdminLogin()" id="login-btn" class="px-4 py-1.5 rounded-full text-sm font-semibold bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 transition-colors shadow-md text-white">
+                        <i class="fas fa-user-circle mr-1"></i><span id="login-label">登录</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 搜索栏（默认隐藏） -->
+        <div id="search-bar-wrap" class="max-w-2xl mx-auto px-4 mt-3 hidden">
+            <form id="search-form" action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer" class="relative">
+                <div class="flex items-center glass-input rounded-2xl border border-slate-700/40 shadow-xl focus-within:border-indigo-500/80 transition-all duration-300">
+                    <div class="relative pl-3">
+                        <button type="button" id="engine-btn" onclick="toggleEngineMenu(event)" class="flex items-center space-x-1.5 text-slate-400 hover:text-indigo-400 transition-colors py-3 pr-1 cursor-pointer">
+                            <i id="engine-icon" class="fab fa-google text-blue-400"></i>
+                            <i class="fas fa-chevron-down text-[10px] opacity-50"></i>
+                        </button>
+                        <div id="engine-menu" class="absolute left-2 top-full mt-2 w-32 bg-slate-950/95 border border-slate-800 rounded-xl shadow-2xl hidden backdrop-blur-md overflow-hidden z-[110]">
+                            <button type="button" onclick="selectEngine('google')" class="w-full text-left px-3 py-2 hover:bg-indigo-600/20 text-xs flex items-center space-x-2 cursor-pointer"><i class="fab fa-google text-blue-400"></i> <span>Google</span></button>
+                            <button type="button" onclick="selectEngine('bing')" class="w-full text-left px-3 py-2 hover:bg-indigo-600/20 text-xs flex items-center space-x-2 cursor-pointer"><i class="fab fa-microsoft text-teal-400"></i> <span>Bing</span></button>
+                            <button type="button" onclick="selectEngine('baidu')" class="w-full text-left px-3 py-2 hover:bg-indigo-600/20 text-xs flex items-center space-x-2 cursor-pointer"><i class="fas fa-paw text-red-400"></i> <span>Baidu</span></button>
+                            <button type="button" onclick="selectEngine('github')" class="w-full text-left px-3 py-2 hover:bg-indigo-600/20 text-xs flex items-center space-x-2 cursor-pointer"><i class="fab fa-github text-slate-400"></i> <span>GitHub</span></button>
+                        </div>
+                    </div>
+                    <input type="text" id="search-input" name="q" placeholder="在 Google 中搜索..." autocomplete="off" class="w-full bg-transparent border-none py-3 px-2 focus:outline-none text-sm">
+                    <button type="submit" class="mr-2 p-2 text-slate-400 hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </header>
+
+    <!-- 主体内容容器 -->
+    <main class="max-w-3xl mx-auto px-4 pt-8 pb-12">
+
+        <!-- 时间 + 天气 横条（保留） -->
+        <div class="text-center mb-8 animate-fade-in">
+            <h1 id="clock" class="text-5xl lg:text-7xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 mb-2">00:00:00</h1>
             <div class="flex items-center justify-center space-x-3 text-sm md:text-base font-medium tracking-wide opacity-90">
                 <span id="greeting" class="text-indigo-400">正在筹备问候语...</span>
                 <span class="opacity-30">|</span>
@@ -191,52 +260,53 @@
             </div>
         </div>
 
-        <!-- 搜索栏 -->
-        <div class="w-full max-w-2xl mb-12 relative z-[100] animate-fade-in-delay">
-            <form id="search-form" action="https://www.google.com/search" method="get" target="_blank" rel="noopener noreferrer" class="relative">
-                <div class="flex items-center glass-input rounded-2xl border border-slate-700/40 shadow-2xl focus-within:border-indigo-500/80 transition-all duration-300">
-                    <div class="relative pl-4">
-                        <button type="button" id="engine-btn" onclick="toggleEngineMenu(event)" class="flex items-center space-x-2 text-slate-400 hover:text-indigo-400 transition-colors py-4 pr-2 cursor-pointer">
-                            <i id="engine-icon" class="fab fa-google text-blue-400"></i>
-                            <i class="fas fa-chevron-down text-xs opacity-50"></i>
-                        </button>
-                        <div id="engine-menu" class="absolute left-2 top-full mt-2 w-36 bg-slate-950/95 border border-slate-800 rounded-xl shadow-2xl hidden backdrop-blur-md overflow-hidden z-[110]">
-                            <button type="button" onclick="selectEngine('google')" class="w-full text-left px-4 py-2.5 hover:bg-indigo-600/20 text-sm flex items-center space-x-2 cursor-pointer"><i class="fab fa-google text-blue-400"></i> <span>Google</span></button>
-                            <button type="button" onclick="selectEngine('bing')" class="w-full text-left px-4 py-2.5 hover:bg-indigo-600/20 text-sm flex items-center space-x-2 cursor-pointer"><i class="fab fa-microsoft text-teal-400"></i> <span>Bing</span></button>
-                            <button type="button" onclick="selectEngine('baidu')" class="w-full text-left px-4 py-2.5 hover:bg-indigo-600/20 text-sm flex items-center space-x-2 cursor-pointer"><i class="fas fa-paw text-red-400"></i> <span>Baidu</span></button>
-                            <button type="button" onclick="selectEngine('github')" class="w-full text-left px-4 py-2.5 hover:bg-indigo-600/20 text-sm flex items-center space-x-2 cursor-pointer"><i class="fab fa-github text-slate-400"></i> <span>GitHub</span></button>
-                        </div>
-                    </div>
-                    <input type="text" id="search-input" name="q" placeholder="在 Google 中搜索..." autocomplete="off" class="w-full bg-transparent border-none py-4 px-3 focus:outline-none text-base">
-                    <button type="submit" class="mr-3 p-2.5 text-slate-400 hover:text-indigo-400 transition-colors">
-                        <i class="fas fa-search text-lg"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- 文章列表视图 -->
-        <div id="article-list-view" class="w-full relative z-10">
+        <!-- ============= 文章页（home） ============= -->
+        <section id="view-home" class="view-section">
             <!-- 博客头部 -->
-            <div class="text-center mb-10 animate-fade-in-delay2">
-                <h2 class="text-3xl lg:text-4xl font-bold mb-3">
-                    <i class="fas fa-blog text-indigo-400 mr-3"></i> Blog
+            <div class="text-center mb-8 animate-fade-in-delay2">
+                <h2 class="text-2xl lg:text-3xl font-bold mb-2">
+                    <i class="fas fa-blog text-indigo-400 mr-2"></i> Blog
                 </h2>
                 <p class="text-slate-400 text-sm" id="blog-subtitle">记录思考，分享技术，偶尔生活</p>
             </div>
 
             <!-- 标签筛选 -->
-            <div class="flex flex-wrap justify-center gap-2 mb-8" id="tag-filter">
+            <div class="flex flex-wrap justify-center gap-2 mb-6" id="tag-filter">
                 <button onclick="filterByTag(null)" class="tag-pill px-4 py-1.5 rounded-full text-xs font-medium glass-card border border-indigo-500/30 text-indigo-400">全部</button>
             </div>
 
             <!-- 文章网格 -->
-            <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+            <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <!-- JS 动态渲染 -->
             </div>
+        </section>
 
-            <!-- 关于 -->
-            <div class="glass-card rounded-2xl p-6 mb-8 animate-fade-in">
+        <!-- ============= 朋友们页（friends） ============= -->
+        <section id="view-friends" class="view-section hidden">
+            <div class="text-center mb-8 animate-fade-in">
+                <h2 class="text-2xl lg:text-3xl font-bold mb-2">
+                    <i class="fas fa-user-friends text-indigo-400 mr-2"></i> 朋友们
+                </h2>
+                <p class="text-slate-400 text-sm">一些有趣的人与站点</p>
+            </div>
+            <div class="glass-card rounded-2xl p-10 text-center">
+                <i class="fas fa-seedling text-5xl text-indigo-400/40 mb-4"></i>
+                <h3 class="text-lg font-semibold text-slate-300 mb-2">友链筹备中</h3>
+                <p class="text-sm text-slate-400 leading-relaxed max-w-md mx-auto">这里将列出我关注的朋友们的博客。<br>目前还在收集，暂未上线，敬请期待 🌱</p>
+                <p class="text-xs text-slate-500 mt-6">Friends page coming soon. Inspired by <a href="https://github.com/openRin/Rin" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:underline">openRin/Rin</a></p>
+            </div>
+        </section>
+
+        <!-- ============= 关于页（about） ============= -->
+        <section id="view-about" class="view-section hidden">
+            <div class="text-center mb-8 animate-fade-in">
+                <h2 class="text-2xl lg:text-3xl font-bold mb-2">
+                    <i class="fas fa-id-card text-indigo-400 mr-2"></i> 关于
+                </h2>
+                <p class="text-slate-400 text-sm">关于这个站点 & 关于我</p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 md:p-8 mb-4">
                 <div class="flex items-start gap-5">
                     <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shrink-0">
                         C
@@ -251,12 +321,23 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 文章详情视图（默认隐藏） -->
+            <div class="glass-card rounded-2xl p-6 md:p-8 mb-4">
+                <h3 class="text-lg font-bold text-indigo-400 mb-3"><i class="fas fa-cog mr-2"></i>关于本站</h3>
+                <ul class="text-sm text-slate-400 space-y-2 leading-relaxed">
+                    <li>· 单文件 HTML + Tailwind CDN，托管在 Cloudflare Pages</li>
+                    <li>· 文章 API 使用 Cloudflare Workers + KV 存储</li>
+                    <li>· 布局灵感来自 <a href="https://github.com/openRin/Rin" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:underline">openRin/Rin</a></li>
+                    <li>· 时间问候语 · 实时天气 · 日/夜主题 · 4 种搜索引擎</li>
+                    <li>· 管理员后台：双击页脚版权文字</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ============= 文章详情视图（默认隐藏） ============= -->
         <div id="article-detail-view" class="w-full relative z-10 hidden">
             <button onclick="backToList()" class="mb-6 flex items-center gap-2 text-sm text-slate-400 hover:text-indigo-400 transition-colors cursor-pointer">
-                <i class="fas fa-arrow-left"></i> <span>返回文章列表</span>
+                <i class="fas fa-arrow-left"></i> <span id="back-label">返回文章列表</span>
             </button>
             <article class="glass-card rounded-2xl p-6 md:p-10">
                 <header class="mb-8 pb-6 border-b border-slate-700/30">
@@ -271,11 +352,11 @@
             </article>
         </div>
 
-        <footer id="admin-trigger" ondblclick="triggerAdminLogin()" class="text-slate-500 text-xs mt-10 cursor-pointer select-none tracking-wide hover:text-indigo-400/70 transition-colors">
-            <span>&copy; 2025 CheeseRoll · Powered by Cloudflare Pages</span>
+        <footer id="admin-trigger" ondblclick="triggerAdminLogin()" class="text-slate-500 text-xs mt-10 text-center cursor-pointer select-none tracking-wide hover:text-indigo-400/70 transition-colors">
+            <span>&copy; 2025 CheeseRoll · Powered by Cloudflare Pages · Inspired by <a href="https://github.com/openRin/Rin" target="_blank" rel="noopener noreferrer" class="hover:underline">Rin</a></span>
             <span id="admin-badge" class="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 font-bold hidden">已登入</span>
         </footer>
-    </div>
+    </main>
 
     <!-- 管理员登录弹窗 -->
     <div id="modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center z-[200] px-4">
@@ -402,6 +483,36 @@
     }
 
     // ============================================================
+    // View 路由切换（Rin 风格页面：home / friends / about）
+    // ============================================================
+    let currentView = 'home';
+    function showView(name) {
+        currentView = name;
+        // 隐藏所有 view-section + 详情页
+        ['home','friends','about'].forEach(v => {
+            const el = $('view-' + v);
+            if (el) el.classList.add('hidden');
+        });
+        $('article-detail-view').classList.add('hidden');
+        // 显示目标 view
+        const target = $('view-' + name);
+        if (target) target.classList.remove('hidden');
+        // 同步顶部导航高亮
+        document.querySelectorAll('.nav-link').forEach(a => {
+            a.classList.toggle('is-active', a.dataset.route === name);
+        });
+        // URL hash
+        if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function toggleSearchBar() {
+        const w = $('search-bar-wrap');
+        if (!w) return;
+        w.classList.toggle('hidden');
+        if (!w.classList.contains('hidden')) $('search-input').focus();
+    }
+
+    // ============================================================
     // 主题 & 语言
     // ============================================================
     function setBaseTheme(theme) {
@@ -426,6 +537,21 @@
         document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
         $('search-input').placeholder = t['search' + searchEngine.charAt(0).toUpperCase() + searchEngine.slice(1)];
         $('blog-subtitle').textContent = t.blogSubtitle;
+        // 同步 header 多语言文案
+        const navMap = { home: t.navHome || '文章', friends: t.navFriends || '朋友们', about: t.navAbout || '关于' };
+        document.querySelectorAll('.nav-link').forEach(a => {
+            const txt = navMap[a.dataset.route];
+            if (txt) a.textContent = txt;
+        });
+        const langFlag = $('lang-flag');
+        if (langFlag) langFlag.textContent = (lang === 'zh' ? '中' : 'EN');
+        const loginLabel = $('login-label');
+        if (loginLabel) loginLabel.textContent = isAdmin ? (lang === 'zh' ? '管理' : 'Admin') : (lang === 'zh' ? '登录' : 'Login');
+        const backLabel = $('back-label');
+        if (backLabel) backLabel.textContent = lang === 'zh' ? '返回文章列表' : 'Back to list';
+        // 页面 title
+        const pt = $('page-title');
+        if (pt) pt.textContent = lang === 'zh' ? "CheeseRoll's Blog" : "CheeseRoll's Blog";
     }
 
     // ============================================================
@@ -550,6 +676,7 @@
         isAdmin = false;
         applyTheme();
         if ($('admin-badge')) $('admin-badge').classList.add('hidden');
+        const ll = $('login-label'); if (ll) ll.textContent = lang === 'zh' ? '登录' : 'Login';
     }
 
     // ============================================================
@@ -621,7 +748,9 @@
     function showArticle(slug) {
         const a = articles.find(x => x.slug === slug);
         if (!a) return;
-        $('article-list-view').classList.add('hidden');
+        $('view-home').classList.add('hidden');
+        $('view-friends').classList.add('hidden');
+        $('view-about').classList.add('hidden');
         $('article-detail-view').classList.remove('hidden');
         $('detail-title').textContent = a.title;
         $('detail-date').innerHTML = `<i class="far fa-calendar mr-1"></i>${a.date || ''}`;
@@ -633,8 +762,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     function backToList() {
-        $('article-detail-view').classList.add('hidden');
-        $('article-list-view').classList.remove('hidden');
+        showView('home');
     }
 
     // ============================================================
@@ -650,6 +778,7 @@
             isAdmin = true;
             applyTheme();
             if ($('admin-badge')) $('admin-badge').classList.remove('hidden');
+            const ll = $('login-label'); if (ll) ll.textContent = lang === 'zh' ? '管理' : 'Admin';
             closeModal();
             renderArticles();
         } else {
@@ -724,6 +853,14 @@
         await loadSiteConfig();
         await loadArticles();
         applyTheme();
+        // 根据 URL hash 初始化 view
+        const initial = (location.hash || '#home').replace('#', '');
+        if (['home','friends','about'].includes(initial)) showView(initial);
+        // hashchange 路由
+        window.addEventListener('hashchange', () => {
+            const v = (location.hash || '#home').replace('#', '');
+            if (['home','friends','about'].includes(v)) showView(v);
+        });
     })();
     </script>
 </body>

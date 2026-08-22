@@ -1251,10 +1251,11 @@
     // 背景音乐播放器
     // ============================================================
     const MUSIC_LIST = [
-        // 本地资源：放在仓库 audio/ 目录，CF Pages 部署后直链为 /audio/xxx.mp3
-        // 想加曲：把 mp3 丢 audio/，加一行 { title, src: '/audio/xxx.mp3' }
-        // 注意：CF Pages 单文件 25MB 上限，mp3 ≤ 5MB 最舒服
-        { title: 'Dream Away', src: '/audio/Dream Away.mp3' }
+        // 免版权外链（Pixabay License / SoundHelix 宽松授权），无需本地部署，浏览器直链播放
+        { title: 'Ambient Calm', src: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3' },
+        { title: 'SoundHelix 8', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3' },
+        { title: 'SoundHelix 1', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+        { title: 'SoundHelix 2', src: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3' }
     ];
     let musicIdx = 0;
     let musicPlaying = false;

@@ -1012,7 +1012,9 @@
             if (!r.ok || !d.ok) { showUserAuthError(d.error || '登录失败'); return; }
             authToken = d.token; localStorage.setItem('authToken', authToken);
             currentUser = d.user;
+            applyTheme();
             applyUserUI();
+            renderArticles();
             closeUserAuth();
         } catch (e) { showUserAuthError('网络错误：' + e.message); }
         finally { setSubmitting(false); }
@@ -1033,7 +1035,9 @@
             if (!r.ok || !d.ok) { showUserAuthError(d.error || '注册失败'); return; }
             authToken = d.token; localStorage.setItem('authToken', authToken);
             currentUser = d.user;
+            applyTheme();
             applyUserUI();
+            renderArticles();
             closeUserAuth();
         } catch (e) { showUserAuthError('网络错误：' + e.message); }
         finally { setSubmitting(false); }
@@ -1042,7 +1046,9 @@
         try { await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'logout', token: authToken }) }); } catch {}
         authToken = null; localStorage.removeItem('authToken'); currentUser = null;
         closeUserMenu();
+        applyTheme();
         applyUserUI();
+        renderArticles();
     }
     function toggleUserMenu() {
         const m = $('user-menu'); if (!m) return;
@@ -1154,8 +1160,9 @@
             const r = await fetch('/api/users', { headers: { 'X-Auth-Token': authToken } });
             const d = await r.json();
             if (d && d.user) { currentUser = d.user; }
-            else { authToken = null; localStorage.removeItem('authToken'); }
+            else { authToken = null; localStorage.removeItem('authToken'); currentUser = null; }
         } catch {}
+        applyTheme();
         applyUserUI();
     }
 
@@ -1192,12 +1199,11 @@
         $('art-title').value = a ? a.title : '';
         $('art-tags').value = a ? (a.tags || []).join(', ') : '';
         $('art-date').value = a ? a.date : new Date().toISOString().slice(0, 10);
-        $('art-author').value = a ? a.author : 'CheeseRoll';
+        $('art-author').value = a ? a.author : (currentUser ? currentUser.displayName : 'CheeseRoll');
         $('art-content').value = a ? a.content : '';
         $('art-error').classList.add('hidden');
         $('article-modal').classList.remove('hidden');
     }
-    function openArticleModal() { openArticleModal(null); }
     function closeArticleModal() { $('article-modal').classList.add('hidden'); editingSlug = null; }
     async function saveArticle() {
         const title = $('art-title').value.trim();
